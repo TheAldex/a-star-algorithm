@@ -2,7 +2,7 @@ import math
 from tkinter import *
 from tkinter import ttk
 import tkinter as tk
-import tkinter.ttk
+from tkinter.ttk import *
 from PIL import Image, ImageTk
 
 # "error" para seleccionar la estacion origen o destino
@@ -85,7 +85,7 @@ def main():
     # Imagen del logo del metro de Atenas
     image = Image.open("logo.png")
     # Ajuste del tamaño de la imagen
-    logo = image.resize((50,50))
+    logo = image.resize((65,65))
     test = ImageTk.PhotoImage(logo)
     
     # Bienvenida a la aplicación (imagen anterior)
@@ -100,8 +100,12 @@ def main():
     # Valores de los desplegables
     values = [*mapa]
     
+    # Personalizamos los textos
+    label_style = Style()
+    label_style.configure('W.Label', font=('calibri', 13))
+    
     # Texto de origen
-    selO = Label(master, text="Seleccione estación de origen")
+    selO = Label(master, text="Seleccione estación de origen", style='W.Label')
     selO.pack()
     # Input de origen
     origen = ttk.Combobox(master, value=values)
@@ -110,7 +114,7 @@ def main():
     origen.pack()
     
     # Texto destino
-    selD = Label(master, text="Seleccione estación de destino")
+    selD = Label(master, text="Seleccione estación de destino", style='W.Label')
     selD.pack()
     # Input destino
     destino = ttk.Combobox(master, value=values)
@@ -122,8 +126,12 @@ def main():
     salto = Label(master, text="")
     salto.pack()
     
+    # Personalizamos el botón
+    button_style = Style()
+    button_style.configure('W.TButton', font=('calibri', 10, 'bold'))
+    
     # Botón para calcular el camino
-    button = Button(master, text="BUSCAR MEJOR RUTA", command=onClick)
+    button = Button(master, text="BUSCAR MEJOR RUTA", style='W.TButton', command=onClick)
     button.pack()
     
     master.mainloop()
