@@ -10,7 +10,6 @@ get_estacion_precision = 10
 # multiplicador para cuando hay transbordo
 h_multiplier = 1000
 # key = nombre de estación
-#hola
 # values = lista de estaciones colindantes, errores y coordenadas en el canvas
 mapa = {'Aghia Paraskevi': [['3'], ['Halandri', 'Nomismatokopio'], 1000000, 1000000, (624, 443)],
         'Aghios Antonios': [['2'], ['Sepolia'], 1000000, 1000000, (143, 386)],
@@ -104,7 +103,7 @@ def main():
     # Personalizamos los textos
     label_style = Style()
     label_style.configure('W.Label', font=('calibri', 13))
-
+    
     # Texto de origen
     selO = Label(master, text="Seleccione estación de origen", style='W.Label')
     selO.pack()
