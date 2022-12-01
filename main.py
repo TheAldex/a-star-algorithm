@@ -364,17 +364,18 @@ def main():
                 # Empaquetamos el lienzo
                 canvas.pack()
 
-                # Borrar los caminos antiguos del mapa
+                # Borrar lo dibujado en el lienzo
                 for e in reset:
                     canvas.delete(e)
 
+                # Borrar los caminos guardados
                 reset.clear()
 
-                # Calcular el mínimo camino
+                # Calcular el camino mínimo y convertirlo en una lista
                 path = reverse_list(list(AEstrella(Grafo, start, end)[0].nodes()))
                 prev = path[0]
 
-                # Representar el camino
+                # Dibujar el camino en el lienzo
                 for i in path[1:]:
                     try:
                         l_curr = mapa.get(i)[0]
@@ -564,27 +565,41 @@ def main():
     salto = Label(master, text="")
     salto.pack()
 
+    # Función para cambiar el estado del botón
     def on_enter(e):
-        alg_button["bg"] = "green"
+        alg_button["bg"] = "gray"
 
+    # Función para cambiar el estado del botón
     def on_leave(e):
         alg_button["bg"] = "SystemButtonFace"
 
     # Botón para calcular el camino
     alg_button = Button(master, text="BUSCAR MEJOR RUTA",
                     font=('calibri', 10, 'bold'), cursor="hand", command=onClick)
-    alg_button.pack()
     
+    # Acciones al pasar el cursor para el botón "BUSCAR MEJOR RUTA"
     alg_button.bind("<Enter>", on_enter)
     alg_button.bind("<Leave>", on_leave)
 
+    # Función para cambiar el estado del botón
+    def on_enter(e):
+        show_button["bg"] = "gray"
+
+    # Función para cambiar el estado del botón
+    def on_leave(e):
+        show_button["bg"] = "SystemButtonFace"
+    
     # Botón para mostrar el mapa vacío
     show_button = Button(master, text="MOSTRAR MAPA",
                     font=('calibri', 10, 'bold'), cursor="hand", command=showMap)
-    show_button.pack()
     
+    # Acciones al pasar el cursor para el botón "MOSTRAR MAPA"
     show_button.bind("<Enter>", on_enter)
     show_button.bind("<Leave>", on_leave)
+    
+    # Empaquetamos los botones
+    alg_button.pack()
+    show_button.pack()
 
     master.mainloop()
 
