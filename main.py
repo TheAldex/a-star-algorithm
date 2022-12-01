@@ -1,41 +1,11 @@
-import math
-from tkinter import *
-from tkinter import ttk
-from tkinter.ttk import *
-from PIL import Image, ImageTk
-import networkx as nx
 import datetime
-
-
-# --------------------------------------------------------------------------------------------------------------------------------
-# FUNCIONES GENERALES
-# Calcula la distancia eucídea entre 2 pixeles (puntos)
-def distancia(a, b):
-    return math.sqrt((a[0]-b[0])**2+(a[1]-b[1])**2)
-
-# Función para calcular el tiempo total del camino
-def tiempo(km, vel):
-    return (km/vel)*60
-
-# Función para invertir una lista
-def reverse_list(arr):
-    left = 0
-    right = len(arr)-1
-    while (left < right):
-        # Swap
-        temp = arr[left]
-        arr[left] = arr[right]
-        arr[right] = temp
-        left += 1
-        right -= 1
-
-    return arr
-
+import math
+import networkx as nx
+from tkinter import Button, Canvas, Label, PhotoImage, Tk, Toplevel, messagebox, ttk
+from PIL import Image, ImageTk
 
 # --------------------------------------------------------------------------------------------------------------------------------
 # DATOS
-Grafo = nx.Graph()
-
 # Lista estaciones
 l1 = ["Piraeus", "Faliro", "Moschato", "Kallithea", "Tavros", "Petralona", "Thissio", "Monastiraki", "Omonia", "Victoria", "Attiki",
       "Aghios Nikolaos", "Kato Patissia", "Aghios Eleftherios", "Ano Patissia", "Perissos", "Pefkakia", "Nea Ionia", "Iraklio", "Irini",
@@ -50,6 +20,7 @@ l3 = ["Egaleo", "Eleonas", "Kerameikos", "Monastiraki", "Syntagma", "Evangelismo
 
 trasbordos = ["Attiki", "Omonia", "Monastiraki", "Syntagma"]
 
+# Coordenadas de cada estación de la línea 1
 coordL1 = [  # verde
     [37.94823850613788, 23.64315408285978],
     [37.9451479545681, 23.66522510003948],
@@ -77,6 +48,7 @@ coordL1 = [  # verde
     [38.07385906445477, 23.808288642328474],
 ]
 
+# Coordenadas de cada estación de la línea 2
 coordL2 = [  # roja
     [38.006838626856, 23.699566830686127],
     [38.00273946681484, 23.71350533028026],
@@ -95,6 +67,7 @@ coordL2 = [  # roja
 
 ]
 
+# Coordenadas de cada estación de la línea 3
 coordL3 = [  # azul
     [37.99312672457056, 23.681853444485967],
     [37.98799138458003, 23.692493826371965],
@@ -162,7 +135,7 @@ mapa = {'Aghia Paraskevi': [['3'], (624, 443)],
         'Omonia': [['1', '2'], (269, 570)],
         'Paiania - Kantza': [['3'], (745, 470)],
         'Pallini': [['3'], (745, 411)],
-        'Panepistimio': [['2'], (298, 594)],
+        'Panepistimio': [['2'], (294, 592)],
         'Panormou': [['3'], (513, 556)],
         'Pefkakia': [['1'], (374, 317)],
         'Perissos': [['1'], (348, 341)],
@@ -177,7 +150,9 @@ mapa = {'Aghia Paraskevi': [['3'], (624, 443)],
         }
 
 # --------------------------------------------------------------------------------------------------------------------------------
-# FUNCIÓN DEL ALGORITMO A*
+# ALGORITMO A*
+Grafo = nx.Graph()
+
 long1 = len(l1)
 long2 = len(l2)
 long3 = len(l3)
@@ -199,6 +174,7 @@ for i in range(long3):
         if (i >= 1):
             Grafo.add_edge(l3[i-1], l3[i], cc='azul')
 
+# Función que describe el algoritmo A*
 def AEstrella(Grafo, origen, fin):
     # Lista de nodos explorados
     visitados = [origen]
@@ -216,7 +192,7 @@ def AEstrella(Grafo, origen, fin):
     f = {origen: g[origen]+h[origen]}
     # Nodo padre
     padre = {}
-    
+
     while (not (actual == fin)):
         vecinos = list(Grafo.neighbors(actual))
 
@@ -266,7 +242,7 @@ def AEstrella(Grafo, origen, fin):
                 date = datetime.date.today()
                 # Día de la semana
                 day = datetime.date.isoweekday(date)
-                
+
                 if (day in weekend):
                     g[x] += 7
                 # Entre 3 y 10 mins más si es fin de semana
@@ -280,7 +256,7 @@ def AEstrella(Grafo, origen, fin):
         # Cambiamos la posicion a la del menor f
         menor = f[novisitados[0]]
         actual = novisitados[0]
-        
+
         for x in novisitados:
             if f[x] < menor:
                 actual = x
@@ -294,7 +270,7 @@ def AEstrella(Grafo, origen, fin):
     while (actual != origen):
         camino.add_node(actual)
         actual = padre[actual]
-        
+
     # Añadimos el origen tambien
     camino.add_node(origen)
 
@@ -305,6 +281,30 @@ def AEstrella(Grafo, origen, fin):
     return camino, dist, time
 
 # --------------------------------------------------------------------------------------------------------------------------------
+# FUNCIONES GENERALES
+# Calcula la distancia eucídea entre 2 pixeles (puntos)
+def distancia(a, b):
+    return math.sqrt((a[0]-b[0])**2+(a[1]-b[1])**2)
+
+# Función para calcular el tiempo total del camino
+def tiempo(km, vel):
+    return (km/vel)*60
+
+# Función para invertir una lista
+def reverse_list(arr):
+    left = 0
+    right = len(arr)-1
+    while (left < right):
+        # Swap
+        temp = arr[left]
+        arr[left] = arr[right]
+        arr[right] = temp
+        left += 1
+        right -= 1
+
+    return arr
+
+# --------------------------------------------------------------------------------------------------------------------------------
 # MAIN
 def main():
     # Función a ejecutar al apretar el botón "BUSCAR MEJOR RUTA"
@@ -313,61 +313,65 @@ def main():
         start = origen.get()
         end = destino.get()
 
-        camini_min = AEstrella(Grafo, start, end)[0]
-        print(camini_min.nodes())
         reset = []
-
-        # Popup (nueva ventana) al pulsar el botón
-        popup = Toplevel()
-        popup.title("MAPA DE RUTA")
-
-        # Dimensiones del popup
-        popup.geometry(f'900x908+100+0')
-        popup.resizable(True, True)
-
-        # Creamos el lienzo donde dibujar el camino
-        canvas = Canvas(popup, width=900, height=986)
-
-        # Imagen del mapa
-        bg = PhotoImage(file='images/mapa.png')
-        # Establecemos la imagen
-        canvas.create_image(450, 454, image=bg)
-
-        dist_text = "LA DISTANCIA A RECORRER ES " + \
-            str(math.ceil(AEstrella(Grafo, start, end)[1])) + " METROS"
-        time_text = "EL TIEMPO A EMPLEAR PARA IR DE " + start.upper() + " A " + end.upper() + \
-            " ES " + \
-            str(math.ceil(AEstrella(Grafo, start, end)[2])) + " MINUTOS"
-
-        # Textos de la distancia recorrida y el tiempo empleado en la ruta
-        canvas.create_text(450, 30, text=dist_text,
-                           fill="black", font=('Arial 13 bold'))
-        canvas.create_text(450, 50, text=time_text,
-                           fill="black", font=('Arial 13 bold'))
-
-        # Empaquetamos el lienzo
-        canvas.pack()
 
         # Si no se introduce origen
         if start == '':
-            print("No existe estación origen.")
+            messagebox.showerror('ERROR', 'Error: Debe introducirse una estación de origen')
 
         # Si no se introduce destino
         elif end == '':
-            print("No existe estación destino.")
+            messagebox.showerror('ERROR', 'Error: Debe introducirse una estación de destino')
 
         # Se ha introducido origen y destino
         else:
+            # Origen no existe
+            if start not in values:
+                messagebox.showerror('ERROR', 'Error: La estación de origen introducida no existe')
+
+            # Destino no existe
+            elif end not in values:
+                messagebox.showerror('ERROR', 'Error: La estación de destino introducida no existe')
+
             # Origen y destino existen
-            if start in values and end in values:
+            elif start in values and end in values:
+                # Popup (nueva ventana) al pulsar el botón
+                popup = Toplevel()
+                popup.title("MAPA DE RUTA")
+
+                # Dimensiones del popup
+                popup.geometry(f'900x908+100+0')
+                popup.resizable(True, True)
+
+                # Creamos el lienzo donde dibujar el camino
+                canvas = Canvas(popup, width=900, height=986)
+
+                # Imagen del mapa
+                bg = PhotoImage(file='images/mapa.png')
+                # Establecemos la imagen
+                canvas.create_image(450, 454, image=bg)
+
+                dist_text = "LA DISTANCIA A RECORRER ES " + \
+                    str(math.ceil(AEstrella(Grafo, start, end)[1])) + " METROS"
+                time_text = "EL TIEMPO A EMPLEAR PARA IR DE " + start.upper() + " A " + end.upper() + \
+                    " ES " + \
+                    str(math.ceil(AEstrella(Grafo, start, end)[2])) + " MINUTOS"
+
+                # Textos de la distancia recorrida y el tiempo empleado en la ruta
+                canvas.create_text(450, 30, text=dist_text, fill="black", font=('Arial 13 bold'))
+                canvas.create_text(450, 50, text=time_text, fill="black", font=('Arial 13 bold'))
+
+                # Empaquetamos el lienzo
+                canvas.pack()
+
                 # Borrar los caminos antiguos del mapa
                 for e in reset:
                     canvas.delete(e)
 
                 reset.clear()
+
                 # Calcular el mínimo camino
-                path = reverse_list(
-                    list(AEstrella(Grafo, start, end)[0].nodes()))
+                path = reverse_list(list(AEstrella(Grafo, start, end)[0].nodes()))
                 prev = path[0]
 
                 # Representar el camino
@@ -383,70 +387,80 @@ def main():
 
                     # Si hay curva en el mapa
                     if i in ['Iraklio', 'Irini'] and prev in ['Iraklio', 'Irini']:
-                        reset.append(canvas.create_oval(c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=12))
+                        reset.append(canvas.create_oval(
+                            c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=10))
                         reset.append(canvas.create_line(c_prev[0], c_prev[1], 433, 260,
                                                         fill='#155e29', width=5))
                         reset.append(canvas.create_line(433, 260, c_curr[0], c_curr[1],
                                                         fill='#155e29', width=5))
 
                     elif i in ['Victoria', 'Attiki'] and prev in ['Victoria', 'Attiki']:
-                        reset.append(canvas.create_oval(c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=12))
+                        reset.append(canvas.create_oval(
+                            c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=10))
                         reset.append(canvas.create_line(c_prev[0], c_prev[1], 268, 514,
                                                         fill='#155e29', width=5))
                         reset.append(canvas.create_line(268, 514, c_curr[0], c_curr[1],
                                                         fill='#155e29', width=5))
 
                     elif i in ['Metaxourghio', 'Omonia'] and prev in ['Metaxourghio', 'Omonia']:
-                        reset.append(canvas.create_oval(c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=12))
+                        reset.append(canvas.create_oval(
+                            c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=10))
                         reset.append(canvas.create_line(c_prev[0], c_prev[1], 228, 565,
                                                         fill='#a51b0b', width=5))
                         reset.append(canvas.create_line(228, 565, c_curr[0], c_curr[1],
                                                         fill='#a51b0b', width=5))
 
                     elif i in ['Kerameikos', 'Monastiraki'] and prev in ['Kerameikos', 'Monastiraki']:
-                        reset.append(canvas.create_oval(c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=12))
+                        reset.append(canvas.create_oval(
+                            c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=10))
                         reset.append(canvas.create_line(c_prev[0], c_prev[1], 180, 612,
                                                         fill='#2510a3', width=5))
                         reset.append(canvas.create_line(180, 612, c_curr[0], c_curr[1],
                                                         fill='#2510a3', width=5))
 
                     elif i in ['Thissio', 'Petralona'] and prev in ['Thissio', 'Petralona']:
-                        reset.append(canvas.create_oval(c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=12))
+                        reset.append(canvas.create_oval(
+                            c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=10))
                         reset.append(canvas.create_line(c_prev[0], c_prev[1], 267, 679,
                                                         fill='#155e29', width=5))
                         reset.append(canvas.create_line(267, 679, c_curr[0], c_curr[1],
                                                         fill='#155e29', width=5))
 
                     elif i in ['Piraeus', 'Faliro'] and prev in ['Piraeus', 'Faliro']:
-                        reset.append(canvas.create_oval(c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=12))
+                        reset.append(canvas.create_oval(
+                            c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=10))
                         reset.append(canvas.create_line(c_prev[0], c_prev[1], 125, 820,
                                                         fill='#155e29', width=5))
                         reset.append(canvas.create_line(125, 820, c_curr[0], c_curr[1],
                                                         fill='#155e29', width=5))
 
                     elif i in ['Syntagma', 'Akropoli'] and prev in ['Syntagma', 'Akropoli']:
-                        reset.append(canvas.create_oval(c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=12))
+                        reset.append(canvas.create_oval(
+                            c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=10))
                         reset.append(canvas.create_line(c_prev[0], c_prev[1], 321, 630,
                                                         fill='#a51b0b', width=5))
                         reset.append(canvas.create_line(321, 630, c_curr[0], c_curr[1],
                                                         fill='#a51b0b', width=5))
 
                     elif i in ['Evangelismos', 'Megaro Moussikis'] and prev in ['Evangelismos', 'Megaro Moussikis']:
-                        reset.append(canvas.create_oval(c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=12))
+                        reset.append(canvas.create_oval(
+                            c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=10))
                         reset.append(canvas.create_line(c_prev[0], c_prev[1], 453, 613,
                                                         fill='#2510a3', width=5))
                         reset.append(canvas.create_line(453, 613, c_curr[0], c_curr[1],
                                                         fill='#2510a3', width=5))
 
                     elif i in ['Doukissis Plakentias', 'Pallini'] and prev in ['Doukissis Plakentias', 'Pallini']:
-                        reset.append(canvas.create_oval(c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=12))
+                        reset.append(canvas.create_oval(
+                            c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=10))
                         reset.append(canvas.create_line(c_prev[0], c_prev[1], 736, 391,
                                                         fill='#2510a3', width=5))
                         reset.append(canvas.create_line(736, 391, c_curr[0], c_curr[1],
                                                         fill='#2510a3', width=5))
 
                     elif i in ['Koropi', 'Airport'] and prev in ['Koropi', 'Airport']:
-                        reset.append(canvas.create_oval(c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=12))
+                        reset.append(canvas.create_oval(
+                            c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=10))
                         reset.append(canvas.create_line(c_prev[0], c_prev[1], 756, 635,
                                                         fill='#2510a3', width=5))
                         reset.append(canvas.create_line(756, 635, c_curr[0], c_curr[1],
@@ -455,35 +469,45 @@ def main():
                     # No hay curva en el mapa
                     else:
                         if l_curr == ['1'] or l_prev == ['1'] or (i == 'Omonia' and (prev == 'Monastiraki' or prev == 'Victoria')) or (i == 'Monastiraki' and prev == 'Omonia'):
-                            reset.append(canvas.create_oval(c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=12))
+                            reset.append(canvas.create_oval(
+                                c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=10))
                             reset.append(canvas.create_line(
                                 c_prev[0], c_prev[1], c_curr[0], c_curr[1], fill='#155e29', width=5))
 
                         elif l_curr == ['2'] or l_prev == ['2'] or (i == 'Syntagma' and (prev == 'Panepistimio' or prev == 'Akropoli')):
-                            reset.append(canvas.create_oval(c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=12))
+                            reset.append(canvas.create_oval(
+                                c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=10))
                             reset.append(canvas.create_line(
                                 c_prev[0], c_prev[1], c_curr[0], c_curr[1], fill='#a51b0b', width=5))
 
                         elif l_curr == ['3'] or l_prev == ['3'] or (i == 'Syntagma' and (prev == 'Monastiraki' or prev == 'Evangelismos')) or (i == 'Monastiraki' and prev == 'Syntagma'):
-                            reset.append(canvas.create_oval(c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=12))
+                            reset.append(canvas.create_oval(
+                                c_prev[0], c_prev[1], c_prev[0], c_prev[1], width=10))
                             reset.append(canvas.create_line(
                                 c_prev[0], c_prev[1], c_curr[0], c_curr[1], fill='#2510a3', width=5))
-                    reset.append(canvas.create_oval(c_curr[0], c_curr[1], c_curr[0], c_curr[1], width=12))
+                    reset.append(canvas.create_oval(
+                        c_curr[0], c_curr[1], c_curr[0], c_curr[1], width=10))
+                    
                     prev = i
-
-            # Origen no existe
-            elif start not in values:
-                print("La estación origen no existe.")
-
-            # Destino no existe
-            elif end not in values:
-                print("La estación destino no existe.")
+                
+                popup.mainloop()
 
             else:
-                print("ERROR")
+                messagebox.showerror('¡Lo sentimos! Ha ocurrido un error')
+    
+    # Función a ejecutar al apretar el botón "MOSTRAR MAPA"
+    def showMap():
+        # Popup (nueva ventana) al pulsar el botón
+        map = Toplevel()
+        map.title("MAPA DE METRO")
 
-        popup.mainloop()
-
+        # Abrimos la imagen y la empaquetamos
+        map_image = ImageTk.PhotoImage(Image.open('images/mapa.png'))
+        Label(map, image=map_image).pack()
+            
+        map.mainloop()
+                
+    # ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # INICIO DE APLICACIÓN
     # Ventana
     master = Tk()
@@ -496,7 +520,7 @@ def main():
     master.resizable(True, True)
 
     # Imagen de la ventana principal
-    master.iconbitmap = (r'logo.ico')
+    master.iconbitmap = (r'images/logo.ico')
 
     # Imagen del logo del metro de Atenas
     image = Image.open('images/logo.png')
@@ -516,12 +540,8 @@ def main():
     # Valores de los desplegables
     values = [*mapa]
 
-    # Personalizamos los textos
-    label_style = Style()
-    label_style.configure('W.Label', font=('calibri', 13))
-
     # Texto de origen
-    selO = Label(master, text="Seleccione estación de origen", style='W.Label')
+    selO = Label(master, text="Seleccione estación de origen", font=('calibri', 13))
     selO.pack()
 
     # Input de origen
@@ -531,8 +551,7 @@ def main():
     origen.pack()
 
     # Texto destino
-    selD = Label(master, text="Seleccione estación de destino",
-                 style='W.Label')
+    selD = Label(master, text="Seleccione estación de destino", font=('calibri', 13))
     selD.pack()
 
     # Input destino
@@ -545,14 +564,27 @@ def main():
     salto = Label(master, text="")
     salto.pack()
 
-    # Personalizamos el botón
-    button_style = Style()
-    button_style.configure('W.TButton', font=('calibri', 10, 'bold'))
+    def on_enter(e):
+        alg_button["bg"] = "green"
+
+    def on_leave(e):
+        alg_button["bg"] = "SystemButtonFace"
 
     # Botón para calcular el camino
-    button = Button(master, text="BUSCAR MEJOR RUTA",
-                    style='W.TButton', command=onClick)
-    button.pack()
+    alg_button = Button(master, text="BUSCAR MEJOR RUTA",
+                    font=('calibri', 10, 'bold'), cursor="hand", command=onClick)
+    alg_button.pack()
+    
+    alg_button.bind("<Enter>", on_enter)
+    alg_button.bind("<Leave>", on_leave)
+
+    # Botón para mostrar el mapa vacío
+    show_button = Button(master, text="MOSTRAR MAPA",
+                    font=('calibri', 10, 'bold'), cursor="hand", command=showMap)
+    show_button.pack()
+    
+    show_button.bind("<Enter>", on_enter)
+    show_button.bind("<Leave>", on_leave)
 
     master.mainloop()
 
