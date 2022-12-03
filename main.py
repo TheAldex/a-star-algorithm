@@ -18,7 +18,7 @@ l3 = ["Egaleo", "Eleonas", "Kerameikos", "Monastiraki", "Syntagma", "Evangelismo
       "Katehaki", "Ethniki Amyna", "Holargos", "Nomismatokopio", "Aghia Paraskevi", "Halandri", "Doukissis Plakentias", "Pallini",
       "Paiania - Kantza", "Koropi", "Airport"]
 
-trasbordos = ["Attiki", "Omonia", "Monastiraki", "Syntagma"]
+transbordos = ["Attiki", "Omonia", "Monastiraki", "Syntagma"]
 
 # Coordenadas de cada estación de la línea 1
 coordL1 = [  # verde
@@ -159,126 +159,106 @@ long3 = len(l3)
 
 for i in range(long1):
     Grafo.add_node(l1[i], cor=coordL1[i])  # n-name c-coordenada code
-    if (i >= 1):
+    if (i > 0):
         Grafo.add_edge(l1[i-1], l1[i], cc='verde')  # cc-color
 
 for i in range(long2):
-    if (not (l2[i] in l1)):
+    if l2[i] not in l1:
         Grafo.add_node(l2[i], cor=coordL2[i])
-        if (i >= 1):
+        if (i > 0):
             Grafo.add_edge(l2[i-1], l2[i], cc='rojo')
 
 for i in range(long3):
-    if (not (l3[i] in l1 and l3[i] in l1)):
+    if (not (l3[i] in l1 and l3[i] in l2)):
         Grafo.add_node(l3[i], cor=coordL3[i])
-        if (i >= 1):
+        if (i > 0):
             Grafo.add_edge(l3[i-1], l3[i], cc='azul')
 
 # Función que describe el algoritmo A*
-def AEstrella(Grafo, origen, fin):
-    # Lista de nodos explorados
-    visitados = [origen]
-    # Lista de nodos no explorados
+def AEstrella(Graph, org, dest):
+    visitados = [org]
     novisitados = []
-    actual = origen
-    # Grafo resultado
-    camino = nx.Graph()
+    current = org  # current node being checked
+    path = nx.Graph()  # path
+    g = {org: 0}  # real distance
+    # Euclidean distance
+    h = {org: distancia(Graph.nodes[org]['cor'], Graph.nodes[org]['cor'])}
+    f = {org: g[org]+h[org]}  # f=g+h
+    parents = {}
 
-    # Valor real de la distancia del origen al elemento
-    g = {origen: 0}
-    # Aproximacion del elemento al nodo fin
-    h = {origen: distancia(
-        Grafo.nodes[origen]['cor'], Grafo.nodes[fin]['cor'])}
-    f = {origen: g[origen]+h[origen]}
-    # Nodo padre
-    padre = {}
+    while (current != dest):
+        # list with all the current node's neighbours
+        neighbours = list(Graph.neighbors(current))
+        for node in neighbours:
+            # if neighbour isn't in visitados or novisitados, add to neighbourlist
+            if (not (node in visitados) and not (node in novisitados)):
+                # if neighbour isn't in novisitados, add to novisitados
+                novisitados.append(node)
+                # sets current node as parent of the neighbour
+                parents[node] = current
 
-    while (not (actual == fin)):
-        vecinos = list(Grafo.neighbors(actual))
+        for i in novisitados:
+            parentToCheck = parents[i]  # current node's parent
+            parent = parentToCheck
 
-        # De todos los nodos adyacentes eliminamos los que ya teniamos antes
-        for x in vecinos:
+            # list with current node's neighbours
+            nn = list(Graph.neighbors(i))
 
-            if ((x in novisitados) or (x in visitados)):
-                vecinos.remove(x)
+            otherParents = list()  # list with current node's parents
+            for j in nn:
+                if (j in visitados):  # nodes are parents only if they are in the visitados
+                    otherParents.append(j)
 
-        # Metemos los nuevos posibles nodos en la lista novisitados
-        novisitados.extend(vecinos)
+            for j in otherParents:
+                if (g[j] < g[parentToCheck]):  # choose optimal parent according to its g's
+                    parents[current] = j  # sets current's node optimal parent
+                    parent = j  # upgrade saved parent of the current node
 
-        for x in visitados:
-            if (x in novisitados):
-                novisitados.remove(x)
+            coordI = Graph.nodes[i]['cor']  # current node's coordinates
+            # current node's parent coordinates
+            coordP = Graph.nodes[parent]['cor']
+            coordD = Graph.nodes[dest]['cor']  # destination's coordinates
 
-        # Bucle que calcula los padres, la g, h y f de la lista novisitados
-        for x in novisitados:
+            # transbordos
+            # if there's a transfer, we add more cost to g (depending on the transfer's distance)
+            if (i in transbordos and parent in transbordos):
+                g[i] = distancia(coordI, coordP)
+            else:
+                g[i] = 0  # otherwise we don't add extra cost
 
-            # Si acabamos de añadir el nodo a novisitados ponemos como padre al nodo actual
-            if (x in vecinos):
-                padre[x] = actual
+            # G from start to current node
+            g[i] += g[parent] + distancia(coordI, coordP)  # add parent's g
+            # h is the euclidean distance from current node to destination
+            h[i] = distancia(coordI, coordD)
+            f[i] = g[i]+h[i]  # f=g+h
 
-            # Comprobamos si hay un posible mejor nodo padre
-            adyacentes = list(Grafo.neighbors(x))
+        current = novisitados[0]  # change current node
+        for i in novisitados:
+            if f[i] < f[current]:  # current node is the one
+                current = i
 
-            for y in adyacentes:
-                if ((y in visitados) and (g[y] < g[padre[x]])):
-                    padre[actual] = y
+        visitados.append(current)  # puts current node on visitados
+        novisitados.remove(current)  # removes current node from novisitados
 
-            # El valor de g es el g del padre + la distancia del nodo al padre
-            g[x] = g[padre[x]] + \
-                distancia(Grafo.nodes[padre[x]]['cor'], Grafo.nodes[x]['cor'])
+    # designing path
+    while (current != org):
+        path.add_node(current)  # add current node to path
+        current = parents[current]  # go back to its parent
+    path.add_node(org)  # add start node
 
-            # Actualizamos la g con el transbordo
-            transbordo = True
-            if (x in l1 and padre[x] in l1):
-                transbordo = False
-            if (x in l2 and padre[x] in l2):
-                transbordo = False
-            if (x in l3 and padre[x] in l3):
-                transbordo = False
+    distance = g[dest]*1000  # trip distance in meters
 
-            if (transbordo):
-                # Fines de semana [Saturday, Sunday]
-                weekend = [5, 6]
-                date = datetime.date.today()
-                # Día de la semana
-                day = datetime.date.isoweekday(date)
-
-                if (day in weekend):
-                    g[x] += 7
-                # Entre 3 y 10 mins más si es fin de semana
-                else:
-                    g[x] += 3
-
-            # Calculamos ahora la h y la f
-            h[x] = distancia(Grafo.nodes[x]['cor'], Grafo.nodes[fin]['cor'])
-            f[x] = g[x]+h[x]
-
-        # Cambiamos la posicion a la del menor f
-        menor = f[novisitados[0]]
-        actual = novisitados[0]
-
-        for x in novisitados:
-            if f[x] < menor:
-                actual = x
-                menor = f[x]
-
-        # Metemos la posicion actual en la lista visitados
-        novisitados.remove(actual)
-        visitados.append(actual)
-
-    # Recorremos el camino al reves, guiados por los nodos padre
-    while (actual != origen):
-        camino.add_node(actual)
-        actual = padre[actual]
-
-    # Añadimos el origen tambien
-    camino.add_node(origen)
-
-    # Hallamos la distancia y el tiempo estimado
-    dist = g[fin]*1000
-    time = tiempo(g[fin], 68) + (camino.number_of_nodes()-1)*1.5
-
-    return camino, dist, time
+    weekend = [5, 6]
+    date = datetime.date.today()  # current date
+    day = datetime.date.isoweekday(date)  # current week day
+    
+    if (day in weekend):
+        # time in minutes; speed=35km/h; mean frequency weekends: 5 minutos
+        time = tiempo(g[dest], 68) + (path.number_of_nodes()-1)*5
+    else:
+        # time in minutes; speed=35km/h; mean frequency week: 3 minutos
+        time = tiempo(g[dest], 68) + (path.number_of_nodes()-1)*3
+    return path, distance, time
 
 # --------------------------------------------------------------------------------------------------------------------------------
 # FUNCIONES GENERALES
@@ -313,25 +293,31 @@ def main():
         start = origen.get()
         end = destino.get()
 
+        print(AEstrella(Grafo, start, end)[0].nodes())
+
         reset = []
 
         # Si no se introduce origen
         if start == '':
-            messagebox.showerror('ERROR', 'Error: Debe introducirse una estación de origen')
+            messagebox.showerror(
+                'ERROR', 'Error: Debe introducirse una estación de origen')
 
         # Si no se introduce destino
         elif end == '':
-            messagebox.showerror('ERROR', 'Error: Debe introducirse una estación de destino')
+            messagebox.showerror(
+                'ERROR', 'Error: Debe introducirse una estación de destino')
 
         # Se ha introducido origen y destino
         else:
             # Origen no existe
             if start not in values:
-                messagebox.showerror('ERROR', 'Error: La estación de origen introducida no existe')
+                messagebox.showerror(
+                    'ERROR', 'Error: La estación de origen introducida no existe')
 
             # Destino no existe
             elif end not in values:
-                messagebox.showerror('ERROR', 'Error: La estación de destino introducida no existe')
+                messagebox.showerror(
+                    'ERROR', 'Error: La estación de destino introducida no existe')
 
             # Origen y destino existen
             elif start in values and end in values:
@@ -355,11 +341,14 @@ def main():
                     str(math.ceil(AEstrella(Grafo, start, end)[1])) + " METROS"
                 time_text = "EL TIEMPO A EMPLEAR PARA IR DE " + start.upper() + " A " + end.upper() + \
                     " ES " + \
-                    str(math.ceil(AEstrella(Grafo, start, end)[2])) + " MINUTOS"
+                    str(math.ceil(
+                        AEstrella(Grafo, start, end)[2])) + " MINUTOS"
 
                 # Textos de la distancia recorrida y el tiempo empleado en la ruta
-                canvas.create_text(450, 30, text=dist_text, fill="black", font=('Arial 13 bold'))
-                canvas.create_text(450, 50, text=time_text, fill="black", font=('Arial 13 bold'))
+                canvas.create_text(450, 30, text=dist_text,
+                                   fill="black", font=('Arial 13 bold'))
+                canvas.create_text(450, 50, text=time_text,
+                                   fill="black", font=('Arial 13 bold'))
 
                 # Empaquetamos el lienzo
                 canvas.pack()
@@ -372,7 +361,8 @@ def main():
                 reset.clear()
 
                 # Calcular el camino mínimo y convertirlo en una lista
-                path = reverse_list(list(AEstrella(Grafo, start, end)[0].nodes()))
+                path = reverse_list(
+                    list(AEstrella(Grafo, start, end)[0].nodes()))
                 prev = path[0]
 
                 # Dibujar el camino en el lienzo
@@ -488,14 +478,14 @@ def main():
                                 c_prev[0], c_prev[1], c_curr[0], c_curr[1], fill='#2510a3', width=5))
                     reset.append(canvas.create_oval(
                         c_curr[0], c_curr[1], c_curr[0], c_curr[1], width=10))
-                    
+
                     prev = i
-                
+
                 popup.mainloop()
 
             else:
                 messagebox.showerror('¡Lo sentimos! Ha ocurrido un error')
-    
+
     # Función a ejecutar al apretar el botón "MOSTRAR MAPA"
     def showMap():
         # Popup (nueva ventana) al pulsar el botón
@@ -505,9 +495,9 @@ def main():
         # Abrimos la imagen y la empaquetamos
         map_image = ImageTk.PhotoImage(Image.open('images/mapa.png'))
         Label(map, image=map_image).pack()
-            
+
         map.mainloop()
-                
+
     # ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # INICIO DE APLICACIÓN
     # Ventana
@@ -542,7 +532,8 @@ def main():
     values = [*mapa]
 
     # Texto de origen
-    selO = Label(master, text="Seleccione estación de origen", font=('calibri', 13))
+    selO = Label(master, text="Seleccione estación de origen",
+                 font=('calibri', 13))
     selO.pack()
 
     # Input de origen
@@ -552,7 +543,8 @@ def main():
     origen.pack()
 
     # Texto destino
-    selD = Label(master, text="Seleccione estación de destino", font=('calibri', 13))
+    selD = Label(master, text="Seleccione estación de destino",
+                 font=('calibri', 13))
     selD.pack()
 
     # Input destino
@@ -575,8 +567,8 @@ def main():
 
     # Botón para calcular el camino
     alg_button = Button(master, text="BUSCAR MEJOR RUTA",
-                    font=('calibri', 10, 'bold'), cursor="hand", command=onClick)
-    
+                        font=('calibri', 10, 'bold'), cursor="hand", command=onClick)
+
     # Acciones al pasar el cursor para el botón "BUSCAR MEJOR RUTA"
     alg_button.bind("<Enter>", on_enter)
     alg_button.bind("<Leave>", on_leave)
@@ -588,15 +580,15 @@ def main():
     # Función para cambiar el estado del botón
     def on_leave(e):
         show_button["bg"] = "SystemButtonFace"
-    
+
     # Botón para mostrar el mapa vacío
     show_button = Button(master, text="MOSTRAR MAPA",
-                    font=('calibri', 10, 'bold'), cursor="hand", command=showMap)
-    
+                         font=('calibri', 10, 'bold'), cursor="hand", command=showMap)
+
     # Acciones al pasar el cursor para el botón "MOSTRAR MAPA"
     show_button.bind("<Enter>", on_enter)
     show_button.bind("<Leave>", on_leave)
-    
+
     # Empaquetamos los botones
     alg_button.pack()
     show_button.pack()
