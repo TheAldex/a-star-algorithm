@@ -21,7 +21,7 @@ l3 = ["Egaleo", "Eleonas", "Kerameikos", "Monastiraki", "Syntagma", "Evangelismo
 transbordos = ["Attiki", "Omonia", "Monastiraki", "Syntagma"]
 
 # Coordenadas de cada estación de la línea 1
-coordL1 = [  # verde
+coordL1 = [
     [37.94823850613788, 23.64315408285978],
     [37.9451479545681, 23.66522510003948],
     [37.944314639017264, 23.6780228846546],
@@ -29,10 +29,10 @@ coordL1 = [  # verde
     [37.962651992557234, 23.703304769309177],
     [37.968797418927856, 23.7092896576727],
     [37.97690381355721, 23.72071682883635],
-    [37.98422982753675, 23.727365547670388],  # Monastiraki 107
-    [37.98439440622449, 23.728670542327293],  # omonia 108
+    [37.98422982753675, 23.727365547670388],
+    [37.98439440622449, 23.728670542327293],
     [37.99317366581129, 23.730443307163007],
-    [37.999510676546244, 23.722893989963133],  # atikki  110
+    [37.999510676546244, 23.722893989963133],
     [38.00702044361351, 23.72773245767271],
     [38.01121696941966, 23.729171071163652],
     [38.02017553816614, 23.731821842327292],
@@ -49,15 +49,15 @@ coordL1 = [  # verde
 ]
 
 # Coordenadas de cada estación de la línea 2
-coordL2 = [  # roja
+coordL2 = [
     [38.006838626856, 23.699566830686127],
     [38.00273946681484, 23.71350533028026],
-    [37.999510676546244, 23.722893989963133],  # attiki 202
+    [37.999510676546244, 23.722893989963133],
     [37.99209656962052, 23.72108144602919],
     [37.98692004297806, 23.72107721534306],
-    [37.98439440622449, 23.728670542327293],  # omonia 205
+    [37.98439440622449, 23.728670542327293],
     [37.98058961718604, 23.7329942269854],
-    [37.97466748997125, 23.735179269313868],  # syntagma 207
+    [37.97466748997125, 23.735179269313868],
     [37.96884315445523, 23.7296007],
     [37.964730362866355, 23.726703786507297],
     [37.95725278747033, 23.727116886507297],
@@ -68,12 +68,12 @@ coordL2 = [  # roja
 ]
 
 # Coordenadas de cada estación de la línea 3
-coordL3 = [  # azul
+coordL3 = [ 
     [37.99312672457056, 23.681853444485967],
     [37.98799138458003, 23.692493826371965],
     [37.97879068094447, 23.711468777911087],
-    [37.98422982753675, 23.727365547670388],  # monastiraki 303
-    [37.97485841331983, 23.73572221287824],  # syntagma 304
+    [37.98422982753675, 23.727365547670388],
+    [37.97485841331983, 23.73572221287824],
     [37.97789320982388, 23.747513053498594],
     [37.979405375082905, 23.752794280344904],
     [37.99006871784915, 23.763502847941332],
@@ -91,6 +91,7 @@ coordL3 = [  # azul
     [37.935733311979725, 23.948431699581214],
 ]
 
+# Diccionario utilizado por Canvas
 # key = nombre de estación
 # values = lista de listas de números de línea y coordenadas en el canvas
 mapa = {'Aghia Paraskevi': [['3'], (624, 443)],
@@ -150,123 +151,12 @@ mapa = {'Aghia Paraskevi': [['3'], (624, 443)],
         }
 
 # --------------------------------------------------------------------------------------------------------------------------------
-# ALGORITMO A*
-Grafo = nx.Graph()
-
-long1 = len(l1)
-long2 = len(l2)
-long3 = len(l3)
-
-for i in range(long1):
-    Grafo.add_node(l1[i], cor=coordL1[i])  # n-name c-coordenada code
-    if (i > 0):
-        Grafo.add_edge(l1[i-1], l1[i], cc='verde')  # cc-color
-
-for i in range(long2):
-    if l2[i] not in l1:
-        Grafo.add_node(l2[i], cor=coordL2[i])
-        if (i > 0):
-            Grafo.add_edge(l2[i-1], l2[i], cc='rojo')
-
-for i in range(long3):
-    if (not (l3[i] in l1 and l3[i] in l2)):
-        Grafo.add_node(l3[i], cor=coordL3[i])
-        if (i > 0):
-            Grafo.add_edge(l3[i-1], l3[i], cc='azul')
-
-# Función que describe el algoritmo A*
-def AEstrella(Graph, org, dest):
-    visitados = [org]
-    novisitados = []
-    current = org  # current node being checked
-    path = nx.Graph()  # path
-    g = {org: 0}  # real distance
-    # Euclidean distance
-    h = {org: distancia(Graph.nodes[org]['cor'], Graph.nodes[org]['cor'])}
-    f = {org: g[org]+h[org]}  # f=g+h
-    parents = {}
-
-    while (current != dest):
-        # list with all the current node's neighbours
-        neighbours = list(Graph.neighbors(current))
-        for node in neighbours:
-            # if neighbour isn't in visitados or novisitados, add to neighbourlist
-            if (not (node in visitados) and not (node in novisitados)):
-                # if neighbour isn't in novisitados, add to novisitados
-                novisitados.append(node)
-                # sets current node as parent of the neighbour
-                parents[node] = current
-
-        for i in novisitados:
-            parentToCheck = parents[i]  # current node's parent
-            parent = parentToCheck
-
-            # list with current node's neighbours
-            nn = list(Graph.neighbors(i))
-
-            otherParents = list()  # list with current node's parents
-            for j in nn:
-                if (j in visitados):  # nodes are parents only if they are in the visitados
-                    otherParents.append(j)
-
-            for j in otherParents:
-                if (g[j] < g[parentToCheck]):  # choose optimal parent according to its g's
-                    parents[current] = j  # sets current's node optimal parent
-                    parent = j  # upgrade saved parent of the current node
-
-            coordI = Graph.nodes[i]['cor']  # current node's coordinates
-            # current node's parent coordinates
-            coordP = Graph.nodes[parent]['cor']
-            coordD = Graph.nodes[dest]['cor']  # destination's coordinates
-
-            # transbordos
-            # if there's a transfer, we add more cost to g (depending on the transfer's distance)
-            if (i in transbordos and parent in transbordos):
-                g[i] = distancia(coordI, coordP)
-            else:
-                g[i] = 0  # otherwise we don't add extra cost
-
-            # G from start to current node
-            g[i] += g[parent] + distancia(coordI, coordP)  # add parent's g
-            # h is the euclidean distance from current node to destination
-            h[i] = distancia(coordI, coordD)
-            f[i] = g[i]+h[i]  # f=g+h
-
-        current = novisitados[0]  # change current node
-        for i in novisitados:
-            if f[i] < f[current]:  # current node is the one
-                current = i
-
-        visitados.append(current)  # puts current node on visitados
-        novisitados.remove(current)  # removes current node from novisitados
-
-    # designing path
-    while (current != org):
-        path.add_node(current)  # add current node to path
-        current = parents[current]  # go back to its parent
-    path.add_node(org)  # add start node
-
-    distance = g[dest]*1000  # trip distance in meters
-
-    weekend = [5, 6]
-    date = datetime.date.today()  # current date
-    day = datetime.date.isoweekday(date)  # current week day
-    
-    if (day in weekend):
-        # time in minutes; speed=35km/h; mean frequency weekends: 5 minutos
-        time = tiempo(g[dest], 68) + (path.number_of_nodes()-1)*5
-    else:
-        # time in minutes; speed=35km/h; mean frequency week: 3 minutos
-        time = tiempo(g[dest], 68) + (path.number_of_nodes()-1)*3
-    return path, distance, time
-
-# --------------------------------------------------------------------------------------------------------------------------------
 # FUNCIONES GENERALES
-# Calcula la distancia eucídea entre 2 pixeles (puntos)
+# Calcula la distancia eucídea entre 2 coordenadas (puntos)
 def distancia(a, b):
     return math.sqrt((a[0]-b[0])**2+(a[1]-b[1])**2)
 
-# Función para calcular el tiempo total del camino
+# Función para calcular el tiempo para realizar el camino
 def tiempo(km, vel):
     return (km/vel)*60
 
@@ -274,8 +164,9 @@ def tiempo(km, vel):
 def reverse_list(arr):
     left = 0
     right = len(arr)-1
+    
     while (left < right):
-        # Swap
+        # Cambio
         temp = arr[left]
         arr[left] = arr[right]
         arr[right] = temp
@@ -285,7 +176,143 @@ def reverse_list(arr):
     return arr
 
 # --------------------------------------------------------------------------------------------------------------------------------
+# ALGORITMO A*
+Grafo = nx.Graph()
+
+# Longitud de la línea más larga
+length = len(l1)
+
+# Creación del grafo
+for i in range(length):
+    Grafo.add_node(l1[i], cor=coordL1[i])
+    #print(l1[i])
+    
+    if (i <= (length-11)):
+        Grafo.add_node(l2[i], cor=coordL2[i])
+    
+    if(i <= (length-5)):
+        Grafo.add_node(l3[i], cor=coordL3[i])
+    
+    # Si hay más de un nodo -> hay arista
+    if(i >= 1):
+        Grafo.add_edge(l1[i-1], l1[i], cc='red')
+        
+        if (i <= (length-11)):
+            Grafo.add_edge(l2[i-1], l2[i], cc='blue')
+        
+        if(i <= length-5):
+            Grafo.add_edge(l3[i-1], l3[i], cc='green')
+
+# Función que describe el algoritmo A*
+def AEstrella(Graph, org, dest):
+    visitados = [org]
+    novisitados = []
+    current = org  # nodo de origen
+    path = nx.Graph()  # variable resultado del camino
+    g = {org: 0}
+    h = {org: distancia(Graph.nodes[org]['cor'], Graph.nodes[org]['cor'])}
+    f = {org: g[org]+h[org]}
+    parents = {}
+
+    # Mientras no se llegue al destino
+    while (current != dest):
+        # Vecinos del nodo actual
+        neighbours = list(Graph.neighbors(current))
+        
+        # Para cada nodo vecino
+        for node in neighbours:
+            # Si el nodo vecino no esta ni en visitados ni en no visitados
+            if (node not in visitados and node not in novisitados):
+                novisitados.append(node)
+                # El nodo actual será el padre del vecino
+                parents[node] = current
+
+        # Para cada nodo no visitado
+        for i in novisitados:
+            parentToCheck = parents[i]
+            padre = parentToCheck
+
+            # Lista con los nodos vecinos
+            vecinos = list(Graph.neighbors(i))
+
+            # Lista con los nodos padres
+            otherParents = list()
+            
+            # Para cada nodo vecino
+            for j in vecinos:
+                # Si el nodo ha sido visitado -> nodo padre
+                if j in visitados:
+                    otherParents.append(j)
+
+            # Buscamos el padre óptimo dependiendo de sus g's
+            for j in otherParents:
+                if (g[j] < g[parentToCheck]):
+                    parents[current] = j
+                    padre = j
+
+            # Coordenadas del nodo actual
+            coordI = Graph.nodes[i]['cor']
+            # Coordenadas del nodo padre
+            coordP = Graph.nodes[padre]['cor']
+            # Coordenadas del nodo destino
+            coordD = Graph.nodes[dest]['cor']
+
+            # Transbordos
+            # Si hay un transbordo aumentamos g con la distancia
+            if (i in transbordos) and (padre in transbordos):
+                g[i] = distancia(coordI, coordP)
+            else:
+                g[i] = 0
+
+            # Calculamos g desde el padre al nodo actual
+            g[i] += g[padre] + distancia(coordI, coordP)
+            h[i] = distancia(coordI, coordD)
+            # f = g + h
+            f[i] = g[i] + h[i]
+
+        # Actualizamos el nodo actual
+        current = novisitados[0]
+        
+        for i in novisitados:
+            if f[i] < f[current]:
+                current = i
+
+        # Añadimos el nodo actual a visitados...
+        visitados.append(current)
+        # ...y lo quitamos de no visitados
+        novisitados.remove(current)
+
+    # Creando camino
+    while (current != org):
+        # Añadimos el nodo actual al camino
+        path.add_node(current)
+        # Evaluamos el padre del nodo actual
+        current = parents[current]
+        
+    # Añadimos el nodo origen
+    path.add_node(org)
+
+    # Distancia en metros
+    distance = g[dest]*1000
+
+    weekend = [5, 6]
+    # Día de la semana
+    date = datetime.date.today()
+    day = datetime.date.isoweekday(date)
+    
+    # Si el día es sábado o domingo
+    if day in weekend:
+        # Aumentamos el tiempo que se tarda en recorrer el camino
+        time = tiempo(g[dest], 68) + (path.number_of_nodes()-1)*5
+    # Si es de lunes a viernes
+    else:
+        time = tiempo(g[dest], 68) + (path.number_of_nodes()-1)*3
+        
+    return path, distance, time
+
+# --------------------------------------------------------------------------------------------------------------------------------
 # MAIN
+# Función de ejecución del programa
 def main():
     # Función a ejecutar al apretar el botón "BUSCAR MEJOR RUTA"
     def onClick():
@@ -293,7 +320,7 @@ def main():
         start = origen.get()
         end = destino.get()
 
-        print(AEstrella(Grafo, start, end)[0].nodes())
+        print(list(AEstrella(Grafo, start, end)[0].nodes()))
 
         reset = []
 
@@ -327,7 +354,7 @@ def main():
 
                 # Dimensiones del popup
                 popup.geometry(f'900x908+100+0')
-                popup.resizable(True, True)
+                popup.resizable(False, False)
 
                 # Creamos el lienzo donde dibujar el camino
                 canvas = Canvas(popup, width=900, height=986)
@@ -353,20 +380,23 @@ def main():
                 # Empaquetamos el lienzo
                 canvas.pack()
 
-                # Borrar lo dibujado en el lienzo
+                # Borrar lo dibujado en el lienzo al ejecutar de nuevo
                 for e in reset:
                     canvas.delete(e)
 
-                # Borrar los caminos guardados
+                # Borrar los caminos guardados al ejecutar de nuevo
                 reset.clear()
 
                 # Calcular el camino mínimo y convertirlo en una lista
                 path = reverse_list(
                     list(AEstrella(Grafo, start, end)[0].nodes()))
+                
+                # Origen del camino
                 prev = path[0]
 
                 # Dibujar el camino en el lienzo
                 for i in path[1:]:
+                    # Guardamos en variables las líneas y coordenadas de cada estación del camino
                     try:
                         l_curr = mapa.get(i)[0]
                         l_prev = mapa.get(prev)[0]
@@ -458,6 +488,7 @@ def main():
                                                         fill='#2510a3', width=5))
 
                     # No hay curva en el mapa
+                    # Las líneas se pintan del color de la línea a la que pertenezca cada estación
                     else:
                         if l_curr == ['1'] or l_prev == ['1'] or (i == 'Omonia' and (prev == 'Monastiraki' or prev == 'Victoria')) or (i == 'Monastiraki' and prev == 'Omonia'):
                             reset.append(canvas.create_oval(
@@ -479,6 +510,7 @@ def main():
                     reset.append(canvas.create_oval(
                         c_curr[0], c_curr[1], c_curr[0], c_curr[1], width=10))
 
+                    # Actualizamos las estaciones
                     prev = i
 
                 popup.mainloop()
@@ -576,7 +608,6 @@ def main():
     # Función para cambiar el estado del botón
     def on_enter(e):
         show_button["bg"] = "gray"
-
     # Función para cambiar el estado del botón
     def on_leave(e):
         show_button["bg"] = "SystemButtonFace"
