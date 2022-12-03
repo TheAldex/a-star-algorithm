@@ -20,7 +20,7 @@ l3 = ["Egaleo", "Eleonas", "Kerameikos", "Monastiraki", "Syntagma", "Evangelismo
 
 transbordos = ["Attiki", "Omonia", "Monastiraki", "Syntagma"]
 
-# Coordenadas de cada estación de la línea 1
+# Coordenadas reales de cada estación de la línea 1
 coordL1 = [
     [37.94823850613788, 23.64315408285978],
     [37.9451479545681, 23.66522510003948],
@@ -48,7 +48,7 @@ coordL1 = [
     [38.07385906445477, 23.808288642328474],
 ]
 
-# Coordenadas de cada estación de la línea 2
+# Coordenadas reales de cada estación de la línea 2
 coordL2 = [
     [38.006838626856, 23.699566830686127],
     [38.00273946681484, 23.71350533028026],
@@ -67,7 +67,7 @@ coordL2 = [
 
 ]
 
-# Coordenadas de cada estación de la línea 3
+# Coordenadas reales de cada estación de la línea 3
 coordL3 = [ 
     [37.99312672457056, 23.681853444485967],
     [37.98799138458003, 23.692493826371965],
