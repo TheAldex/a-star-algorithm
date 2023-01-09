@@ -1,4 +1,4 @@
-## A* IMPLEMENTATION EXAMPLE (Artificial Intelligence)
+# A* IMPLEMENTATION EXAMPLE (Artificial Intelligence)
 
 Implementation in of the A* algorithm for minimum path search to the Athens metro. 
 
@@ -8,7 +8,7 @@ The map used is the one shown below and it shows all the station names and the l
 
 ![alt text](https://github.com/TheAldex/practica-metro-ia/blob/main/images/mapa.png?raw=true)
 
-# HOW TO USE
+## HOW TO USE
 
 Just clone the repository, download the dependencies indicated at the beginning of the code and execute:
 
